@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+      "rootDir": "./tests",
+      "outDir": "./build",
+      "lib": ["ESNext"],
+      "strict": true,
+      "skipLibCheck": true
+  }
+}
