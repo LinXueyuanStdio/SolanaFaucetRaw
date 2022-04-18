@@ -2,9 +2,12 @@
   "name": "escrow-scripts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "tests/index.js",
   "scripts": {
     "compile": "tsc -p ./tsconfig.json",
+    "build": "solray build ./",
+    "test": "ts-node-dev tests/index.ts",
+    "watch": "ts-node-dev --respawn tests/index.ts",
     "setup-validator": "solana-test-validator -r --mint E2F3fsS1HpsLb2VpEgsA5ztfo83CWFWW4jWpC6FvJ6qR --bpf-program 4yBTZXsuz7c1X3PJF4PPCJr8G6HnNAgRvzAWVoFZMncH",
     "setup": "npm run compile && node build/setup.js",
     "setup-alice": "npm run compile && node build/setup.js && node build/alice.js",
@@ -29,6 +32,7 @@
   "dependencies": {
     "@solana/spl-token": "^0.1.8",
     "@solana/web3.js": "^1.29.1",
+    "solray": "https://github.com/defactojob/solray.git",
     "bn.js": "^5.2.0"
   }
 }

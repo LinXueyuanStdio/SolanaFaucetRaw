@@ -1,6 +1,17 @@
-use solana_program::{
-    account_info::AccountInfo, entrypoint, entrypoint::ProgramResult, msg, pubkey::Pubkey,
+#![cfg(feature = "program")]
+use byteorder::{ByteOrder, LittleEndian};
+use solana_sdk::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint,
+    entrypoint::ProgramResult,
+    info,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+    program::invoke_signed,
+    instruction::{Instruction}
 };
+use spl_token;
+use std::mem;
 
 entrypoint!(process_instruction);
 fn process_instruction(
@@ -8,12 +19,37 @@ fn process_instruction(
     accounts: &[AccountInfo],
     instruction_data: &[u8],
 ) -> ProgramResult {
-    msg!(
-        "process_instruction: {}: {} accounts, data={:?}",
-        program_id,
-        accounts.len(),
-        instruction_data
-    );
+    // 给 A 账户 100 个币
+    // accounts = {
+    //     A,
+    //     token program,
+    //     faucet token account,
+    //     faucet token owner (auth)
+    // }
+    // instruction_data 生成授权凭证
+    // Iterating accounts is safer then indexing
+    let accounts_iter = &mut accounts.iter();
+    let receiver = next_account_info(accounts_iter)?;
+    let token_program = next_account_info(accounts_iter)?;
+    let faucet = next_account_info(accounts_iter)?;
+    let faucet_authority = next_account_info(accounts_iter)?;
+
+    let seed = instruction_data;
+    let instruction = spl_token::instruction::transfer(
+        token_program.key,
+        faucet.key,
+        receiver.key,
+        faucet_authority.key,
+        &[],
+        100000000)?;
+
+    invoke_signed(&instruction, &[
+        faucet.clone(),
+        receiver.clone(),
+        faucet_authority.clone(),
+        token_program.clone(),
+    ], &[&[seed]])?;
+
     Ok(())
 }
 
@@ -52,3 +88,6 @@ mod test {
         assert_matches!(banks_client.process_transaction(transaction).await, Ok(()));
     }
 }
+
+#[cfg(not(target_arch = "bpf"))]
+solana_sdk::program_stubs!();
